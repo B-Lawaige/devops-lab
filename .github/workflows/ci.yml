@@ -1,0 +1,25 @@
+name: Integration Continue (CI)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test-et-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Recuperer le code du depot
+        uses: actions/checkout@v4
+
+      - name: 2. Tester l'environnement Python
+        run: |
+          python3 --version
+          python3 docker_app/app.py
+
+      - name: 3. Tester la construction de l'image Docker
+        run: |
+          cd docker_app
+          docker build -t mon-app-test .
