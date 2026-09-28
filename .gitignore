@@ -1,4 +1,3 @@
-# Ignored files and directories
-
-logs/
-*.log
+__pycache__/
+*.pyc
+.env
