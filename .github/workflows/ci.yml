@@ -1,28 +1,51 @@
-name: Integration Continue et Deploy (CI/CD)
+name: Pipeline CI/CD Multi-jobs
 
 on:
   push:
     branches: [ "main" ]
 
 jobs:
-  test-build-push:
+  # Job 1 : Lint du Dockerfile avec Hadolint
+  lint-dockerfile:
     runs-on: ubuntu-latest
-
     steps:
-      - name: 1. Recuperer le code
+      - name: Checkout du code
         uses: actions/checkout@v4
 
-      - name: 2. Tester le script Python
-        run: |
-          python3 docker_app/app.py
+      - name: Verifier la qualite du Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: docker_app/Dockerfile
 
-      - name: 3. Connexion a Docker Hub
+  # Job 2 : Scan des vulnérabilités avec Trivy
+  scan-securite:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Scanner les dependances et le code avec Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: './docker_app'
+          severity: 'CRITICAL,HIGH'
+
+  # Job 3 : Build & Push vers Docker Hub (s'exécute SEULEMENT si les jobs 1 et 2 réussissent)
+  build-and-push:
+    needs: [lint-dockerfile, scan-securite]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Connexion a Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: 4. Build et Push sur Docker Hub
+      - name: Build et Push sur Docker Hub
         uses: docker/build-push-action@v5
         with:
           context: ./docker_app
