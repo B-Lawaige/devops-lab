@@ -57,7 +57,7 @@ jobs:
           scan-ref: './docker_app'
           severity: 'CRITICAL,HIGH'
 
-  # Job 4 : Build & Push (Exécuté seulement si les 3 jobs précédents réussissent)
+  # Job 4 : Build & Push 
   build-and-push:
     needs: [test-python, lint-dockerfile, scan-securite]
     runs-on: ubuntu-latest
@@ -77,3 +77,16 @@ jobs:
           context: ./docker_app
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/mon-app-python:latest
+
+# Job 5 : Déploiement sur le serveur
+  deploy-staging:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Connexion SSH et mise a jour du conteneur
+        run: |
+          echo "Simulations du deploiement SSH sur le serveur..."
+          echo "1. Connexion SSH au serveur..."
+          echo "2. docker pull ${{ secrets.DOCKERHUB_USERNAME }}/mon-app-python:latest"
+          echo "3. Redemarrage du service avec le nouveau conteneur"
+          echo "Deploiement effectue avec succes !"
