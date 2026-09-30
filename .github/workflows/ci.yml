@@ -1,11 +1,37 @@
-name: Pipeline CI/CD Multi-jobs
+name: Pipeline CI/CD Avance (Tests, Qualite, Security & CD)
 
 on:
   push:
     branches: [ "main" ]
 
 jobs:
-  # Job 1 : Lint du Dockerfile avec Hadolint
+  # Job 1 : Qualité du code Python & Tests unitaires
+  test-python:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Configurer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Installer les dependances
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest flake8
+
+      - name: Linting avec Flake8
+        run: |
+          # Stop le build si erreur de syntaxe ou variables non définies
+          flake8 docker_app --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Execution des tests unitaires avec Pytest
+        run: |
+          PYTHONPATH=docker_app pytest docker_app/
+
+  # Job 2 : Lint du Dockerfile
   lint-dockerfile:
     runs-on: ubuntu-latest
     steps:
@@ -17,23 +43,23 @@ jobs:
         with:
           dockerfile: docker_app/Dockerfile
 
-  # Job 2 : Scan des vulnérabilités avec Trivy
+  # Job 3 : Scan des vulnérabilités avec Trivy
   scan-securite:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
 
-      - name: Scanner les dependances et le code avec Trivy
+      - name: Scanner avec Trivy
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
           scan-ref: './docker_app'
           severity: 'CRITICAL,HIGH'
 
-  # Job 3 : Build & Push vers Docker Hub (s'exécute SEULEMENT si les jobs 1 et 2 réussissent)
+  # Job 4 : Build & Push (Exécuté seulement si les 3 jobs précédents réussissent)
   build-and-push:
-    needs: [lint-dockerfile, scan-securite]
+    needs: [test-python, lint-dockerfile, scan-securite]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout du code
