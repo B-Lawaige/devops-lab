@@ -19,7 +19,8 @@ jobs:
           python3 --version
           python3 docker_app/app.py
 
-      - name: 3. Tester la construction de l'image Docker
+      - name: 3. Build et Test du conteneur Docker
         run: |
           cd docker_app
           docker build -t mon-app-test .
+          docker run mon-app-test
