@@ -1,26 +1,30 @@
-name: Integration Continue (CI)
+name: Integration Continue et Deploy (CI/CD)
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
-  test-et-build:
+  test-build-push:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 1. Recuperer le code du depot
+      - name: 1. Recuperer le code
         uses: actions/checkout@v4
 
-      - name: 2. Tester l'environnement Python
+      - name: 2. Tester le script Python
         run: |
-          python3 --version
           python3 docker_app/app.py
 
-      - name: 3. Build et Test du conteneur Docker
-        run: |
-          cd docker_app
-          docker build -t mon-app-test .
-          docker run mon-app-test
+      - name: 3. Connexion a Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 4. Build et Push sur Docker Hub
+        uses: docker/build-push-action@v5
+        with:
+          context: ./docker_app
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/mon-app-python:latest
