@@ -5,7 +5,7 @@ metadata:
   labels:
     app: mon-app
 spec:
-  replicas: 3 # On demande 3 exemplaires identiques de notre application
+  replicas: 3
   selector:
     matchLabels:
       app: mon-app
@@ -15,6 +15,24 @@ spec:
         app: mon-app
     spec:
       containers:
-      - name: mon-app-container
+      - name: mon-app-python
         image: brayanlaw/mon-app-python:latest
-        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        
+        # --- SONDES DE SANTÉ (Probes) ---
+        # Vérifie si le conteneur est prêt à recevoir du trafic réseau
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+        # Vérifie si l'application fonctionne toujours correctement
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
