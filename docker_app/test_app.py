@@ -1,4 +1,8 @@
-from fastapi.testclient import TestClient
+try:
+    from fastapi.testclient import TestClient
+except ModuleNotFoundError:
+    from starlette.testclient import TestClient
+
 from app import app
 
 client = TestClient(app)
