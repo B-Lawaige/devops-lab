@@ -1,10 +1,16 @@
-import time
+from fastapi import FastAPI
+import uvicorn
+import socket
 
-def saluer(nom="Monde"):
-    return f"Hello {nom} depuis mon conteneur Docker sur-mesure !"
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    hostname = socket.gethostname()
+    return {
+        "message": "Hello depuis Kubernetes !",
+        "pod_name": hostname
+    }
 
 if __name__ == "__main__":
-    print(saluer())
-    # Boucle infinie pour maintenir le conteneur en vie dans Kubernetes
-    while True:
-        time.sleep(3600)
+    uvicorn.run(app, host="0.0.0.0", port=80)

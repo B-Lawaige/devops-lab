@@ -2,6 +2,10 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
+RUN pip install --no-cache-dir fastapi uvicorn
+
 COPY app.py .
+
+EXPOSE 80
 
 CMD ["python", "app.py"]

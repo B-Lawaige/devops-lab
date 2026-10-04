@@ -1,7 +1,9 @@
-from app import saluer
+from fastapi.testclient import TestClient
+from app import app
 
-def test_saluer_defaut():
-    assert saluer() == "Hello Monde depuis mon conteneur Docker sur-mesure !"
+client = TestClient(app)
 
-def test_saluer_personnalise():
-    assert saluer("DevOps") == "Hello DevOps depuis mon conteneur Docker sur-mesure !"
+def test_read_root():
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "Hello depuis Kubernetes !" in response.json()["message"]

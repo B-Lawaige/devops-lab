@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mon-app-deployment
+  labels:
+    app: mon-app
+spec:
+  replicas: 3 # On demande 3 exemplaires identiques de notre application
+  selector:
+    matchLabels:
+      app: mon-app
+  template:
+    metadata:
+      labels:
+        app: mon-app
+    spec:
+      containers:
+      - name: mon-app-container
+        image: brayanlaw/mon-app-python:latest
+        imagePullPolicy: Always
